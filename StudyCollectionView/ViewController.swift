@@ -9,11 +9,20 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    enum Section {
+        case main
+    }
+    
     @IBOutlet var myCollectionView: UICollectionView!
+    
+    var collectionViewDiffDataSource: UICollectionViewDiffableDataSource<Section,Int>!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        myCollectionView.collectionViewLayout = myLayoutForCollectionView()
+        configureCollectionViewDataSource()
+        
     }
 
     func myLayoutForCollectionView() -> UICollectionViewCompositionalLayout {
@@ -31,6 +40,25 @@ class ViewController: UIViewController {
         let layout = UICollectionViewCompositionalLayout(section: section)
         
         return layout
+    }
+    
+    func configureCollectionViewDataSource() {
+        collectionViewDiffDataSource = UICollectionViewDiffableDataSource<Section,Int>(collectionView: myCollectionView)
+        {
+            [weak self] collectionView, indexPath, number in
+            guard let cell = self?.myCollectionView.dequeueReusableCell(withReuseIdentifier: NumberCell.reuseIdentifier , for: indexPath) as? NumberCell
+                else { fatalError ("Have a good day") }
+            
+            cell.numberLabel.text = number.description
+            
+            return cell
+        }
+        
+        var snapshot = NSDiffableDataSourceSnapshot<Section,Int>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(Array(1...100), toSection: .main)
+        
+        collectionViewDiffDataSource.apply(snapshot,animatingDifferences: false)
     }
 }
 
